@@ -1,3 +1,3 @@
 # VDP
-Virtual Drawing Pad by OpenCV and Numpy
-ok
+* Virtual Drawing Pad by OpenCV and Numpy
+
