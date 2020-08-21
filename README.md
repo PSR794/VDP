@@ -39,9 +39,13 @@ example is given below-
 ---
 ### THE STYLUS
 A red ring was used as a stylus for the testing.
+
 ![](https://i.imgur.com/PVBxHKr.jpg) 
-The HSV range is: 
+
+The HSV range is:
+
 lower=(0,179,116)
+
 higher=(180,256,255)
 
 ---
