@@ -33,7 +33,7 @@ example is given below-
 > *here is a mask set on normal room lightings*
 ---
 ![](https://i.imgur.com/kb5tniu.jpg)
-> here is a same mask for the same stylus in different lighting conditions
+> *here is a same mask for the same stylus in different lighting conditions*
 > 
 ---
 ---
