@@ -2,80 +2,115 @@ import numpy as np
 import cv2 as cv
 from matplotlib import pyplot as plt
 
-pad=np.zeros((480,640,3),np.uint8) # creating the drawing pad
-pad[::]=255
-Max=0
-
-img=np.zeros((300,300,3),np.uint8)#the color pallete image
-
-#color pallete code
 def nothing(x):
     pass
+#Window for drawing, which has trackbars for changing colours
+cv.namedWindow('Drawing Board')
 
-cv.namedWindow('image')
+cv.createTrackbar("R", "Drawing Board", 0, 255, nothing)
+cv.createTrackbar("G", "Drawing Board", 0, 255, nothing)
+cv.createTrackbar("B", "Drawing Board", 0, 255, nothing)
+cv.createTrackbar("Size", "Drawing Board", 3, 30, nothing)
 
-cv.createTrackbar('R','image',0,255,nothing)#red channel
-cv.createTrackbar('G','image',0,255,nothing)#green channel
-cv.createTrackbar('B','image',0,255,nothing)#blue channel
-cv.createTrackbar('T','image',4,100,nothing)#thickness
+#The main window
+cv.namedWindow("Trackbars")
+#Trackbars to change the hsv upper and lower limits
+cv.createTrackbar("L - H", "Trackbars", 0, 179, nothing)
+cv.createTrackbar("L - S", "Trackbars", 0, 255, nothing)
+cv.createTrackbar("L - V", "Trackbars", 0, 255, nothing)
+cv.createTrackbar("U - H", "Trackbars", 179, 179, nothing)
+cv.createTrackbar("U - S", "Trackbars", 255, 255, nothing)
+cv.createTrackbar("U - V", "Trackbars", 255, 255, nothing)
 
-
-vid=cv.VideoCapture(0) # starting video
-kernel=np.ones((5,5),np.uint8) #kernel for morpholigical transforms
-print('press esc to exit')
-print('to move the stylus position hide it and shift at the other position')
-if not vid.isOpened():
-    print('camera didnt open')
+cap = cv.VideoCapture(0)
+if not cap.isOpened():
+    print('Cannot open camera')
     exit()
+
+kernel = np.ones((3,3), dtype=np.uint8)
+global hold_flag
+points = []
+cont_flag=0
+
 while True:
-    cv.imshow('image',img)
-    #position of track bars
-    red=cv.getTrackbarPos('R','image')
-    green=cv.getTrackbarPos('G','image')
-    blue=cv.getTrackbarPos('B','image')
-    thickness=cv.getTrackbarPos('T','image')
-    img[:]=[blue,green,red]
+    ret, frame = cap.read()
+    if not ret :
+        print("Can't recieve frame, try again later maybe...")
+        break
+    frame = cv.flip(frame,1)
 
-
-    Return1,Frame=vid.read() #reading the frames
-    hsv=cv.cvtColor(Frame,cv.COLOR_BGR2HSV)
-
-    LR=np.array([0,179,116])
-    HR=np.array([180,256,255])#setting the range for mask
-
-    mask=cv.inRange(hsv,LR,HR)
-    opening=cv.morphologyEx(mask,cv.MORPH_OPEN,kernel)
-    dil=cv.dilate(opening,kernel,iterations=3)
-    ring=cv.bitwise_and(Frame,Frame,mask=dil) # applying and operator to frames and mask to extract stylus
-
-    ringray = cv.cvtColor(ring,cv.COLOR_BGR2GRAY)
-    canny=cv.Canny(ringray,0,255) #canny edge detector for contour detection
-    closing=cv.morphologyEx(canny,cv.MORPH_CLOSE,kernel) #for removing background noise
-    contours,hierarchy=cv.findContours(closing,cv.RETR_TREE,cv.CHAIN_APPROX_SIMPLE)# fetching the contour coordinate
+    #Trackbars to get the range of stylus
+    l_h = cv.getTrackbarPos("L - H", "Trackbars")
+    l_s = cv.getTrackbarPos("L - S", "Trackbars")
+    l_v = cv.getTrackbarPos("L - V", "Trackbars")
+    u_h = cv.getTrackbarPos("U - H", "Trackbars")
+    u_s = cv.getTrackbarPos("U - S", "Trackbars")
+    u_v = cv.getTrackbarPos("U - V", "Trackbars")
     
-    if np.size(contours)==0:# case when user want to switch the position of stylus without drawing
+    lower_col = np.array([l_h,l_s,l_v])
+    upper_col = np.array([u_h,u_s,u_v])
+    
+    #creating mask
+    hsv = cv.cvtColor(frame,cv.COLOR_BGR2HSV)
+    mask = cv.inRange(hsv, lower_col,  upper_col)
+    mask = cv.morphologyEx(mask, cv.MORPH_CLOSE, kernel)
+
+    masked_img = cv.bitwise_and(frame, frame, mask = mask)
+    cv.imshow('Trackbars',masked_img)
+
+    #Pressing enter to create contour
+    if cv.waitKey(10)&0xff==13 or cont_flag==1:
+        #creating the contour
+        cnt,_ = cv.findContours(mask, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+        cont_flag=1
+
+        if len(cnt)>0:
+            c = max(cnt, key = cv.contourArea) #finding contour with max area
+            #drawing a rectangle around
+            rect = cv.minAreaRect(c)
+            global cx,cy
+            [(cx,cy),(w,h),_] = rect
+            box = cv.boxPoints(rect)
+            box = np.int0(box)
+            cv.drawContours(masked_img,[box],0,(0,0,255),2)
+            #circle showing the middle
+            cv.circle(masked_img,(int(cx),int(cy)),3,(255,0,0),-1)
+            cv.imshow('Trackbars', masked_img)
+            
+            #making a board to draw
+            board = np.zeros(frame.shape, np.uint8)
+            board[:] = [255,255,255]
+
+            r = cv.getTrackbarPos("R", "Drawing Board")
+            g = cv.getTrackbarPos("G", "Drawing Board")
+            b = cv.getTrackbarPos("B", "Drawing Board")
+            sz = cv.getTrackbarPos("Size", "Drawing Board")
+    else:
         continue
     
-    cnt=contours[0]
-    (x,y),radius = cv.minEnclosingCircle(cnt)#stylus detection
-    if radius>28:
-        centre=(int(x),int(y))
-        radius=int(radius)
-        #marking the stylus
-        cv.circle(Frame,centre,radius,(0,255,0),2)
-        cv.circle(pad,centre,thickness,(blue,green,red),-1)
-        cv.circle(pad,centre,thickness,(blue,green,red),-1)
-        cv.imshow('DRAW',pad)
-    cv.imshow('original',Frame)
-    cv.imshow('thanosd',closing)
-    cv.imshow('thanose',opening)
-    cv.imshow('thanosf',dil)
-    cv.imshow('canny',canny)
-    k=cv.waitKey(3) & 0xFF
-    if (cv.waitKey(1) & 0xFF==ord('q')) or k==27:
+    cv.circle(board,(int(cx),int(cy)),sz,(b,g,r),-1)
+    #Stops writing when 'p' is pressed
+    if cv.waitKey(40)&0xff==ord('p'):
+        points.append((0,0))
+    else:
+        points.append((int(cx), int(cy)))
+    #Draw for all the points
+    for i in range(1,len(points)):
+        if points[i]==(0,0):
+            pass
+        else:
+            if points[i-1]==(0,0):
+                pass
+            else:
+                cv.line(board,points[i-1],points[i],(b,g,r),sz)
+            cv.imshow('Drawing Board', board)
+            
+    if cv.waitKey(1)&0xff == 27:
         break
+    #Clear the board when pressed 'c'
+    if cv.waitKey(5)&0xff == ord('c'):
+        points[:]=[]
+        continue
 
-#cleaning up
-vid.release()
+cap.release()
 cv.destroyAllWindows()
-
