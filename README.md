@@ -42,7 +42,7 @@ example is given below-
 ---
 
 ### THE STYLUS
-A a green pen cap was used as a stylus for the testing.
+A green pen cap was used as a stylus for the testing.
 
 ![](https://i.imgur.com/MgrLU6a.jpg)
 
