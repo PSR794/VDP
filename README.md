@@ -1,6 +1,6 @@
 # VIRTUAL DRAWING PAD
-*The aim is to let the user draw on a virtual pad provided by moving a stylus in front of the webcam. The task uses the basics of Python module- OpenCV and Numpy.
-Image segmentation technique (separating the stylus from the frame) helps in solving the problem.*
+The aim is to let the user draw on a virtual pad provided by moving a stylus in front of the webcam. The task uses the basics of Python module- OpenCV and Numpy.
+Image segmentation technique (separating the stylus from the frame) helps in solving the problem.
 
 
 ---
@@ -18,7 +18,10 @@ Image segmentation technique (separating the stylus from the frame) helps in sol
 * The code stops drawing when the user hides the stylus and continues when it is shown again to the camera.
 
 
+
 ---
+
+
 ---
 
 ## THE MASK LIMITATION
@@ -33,28 +36,22 @@ example is given below-
 > *here is a mask set on normal room lightings*
 ---
 ![](https://i.imgur.com/kb5tniu.jpg)
-> *here is a same mask for the same stylus in different lighting conditions*
+> here is a same mask for the same stylus in different lighting conditions
 > 
 ---
 ---
+
 ### THE STYLUS
-A red ring was used as a stylus for the testing.
+A a green pen cap was used as a stylus for the testing.
 
-![](https://i.imgur.com/PVBxHKr.jpg) 
-
-The HSV range is:
-
-lower=(0,179,116)
-
-higher=(180,256,255)
+![](https://i.imgur.com/MgrLU6a.jpg)
 
 ---
 ---
 
 ### RESULTS
 Given below is the video, shows the final code in action.
-https://drive.google.com/file/d/1apsUwSxVLs87HhGXQoRBaFQcuUVVVN92/view?usp=sharing
-
+https://drive.google.com/file/d/1IpHWfHIVJzGFdHSEiqWWKS-3U83H5qr5/view?usp=drivesdk
 ---
 
 LANGUAGE VERSIONS:
